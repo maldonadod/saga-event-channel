@@ -2,52 +2,78 @@ import React, {Component} from 'react'
 import {connect} from 'react-redux'
 import {
   START_APP
+  ,SET_USER
 } from './actions'
 
-const Container = ({children}) => (
-  <section>{children}</section>
-)
+import ChatApp from './chat/ChatApp'
+import {
+  FlexContainer
+} from './components/FlexContainer'
 
 class App extends Component {
 
   constructor(props) {
     super(props)
-    this.renderPost = this.renderPost.bind(this)
+    this.username = null
   }
 
   componentDidMount() {
     this.props.start()
   }
 
-  renderPost(post,i) {
-    return (
-      <section key={i}>
-        <h3>{post.title}</h3>
-        <p>{post.content}</p>
-      </section>
-    )
+  setUsername = e => {
+    this.username = e.target.value
+  }
+
+  enter = () => {
+    const {setUser} = this.props
+
+    if (this.username === null) {
+      return alert('First enter a username')
+    }
+    setUser({
+      username: this.username
+    })
   }
 
   render() {
-    const {posts} = this.props
+    const {posts,user} = this.props
+
+    if (!user) {
+      return (
+        <section>
+          <div>
+            <input
+              onChange={this.setUsername}
+              type="text" />
+            <button
+              onClick={this.enter}
+              type="button">Enter</button>
+          </div>
+        </section>
+      )
+    }
+
     return (
-      <Container>
-        <h1>The Posts</h1>
-        {
-          posts.map(this.renderPost)
-        }
-      </Container>
+      <ChatApp
+        messages={posts}
+        user={user} />
     )
   }
 }
 
 const mapToState = state => ({
   posts: state.posts
+  ,user: state.user
 })
 
 const mapToDispatch = dispatch => ({
   start: () => dispatch({
     type: START_APP
+  })
+  ,setUser: user => dispatch({
+    type: SET_USER
+    ,user
   })
 })
 
