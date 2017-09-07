@@ -4,39 +4,20 @@ const PORT = process.env.PORT || 8900;
 const app = require('express')();
 const server = require('http').Server(app);
 const io = require('socket.io')(server);
+const messages = []
 
 io.on('connection', socket => {
 
-  const posts = [
-    {
-      title: 'Post #1',
-      content: 'Bojack Horseman'
-    }
-    ,{
-      title: 'Post #2',
-      content: 'Mr Peanutbutter'
-    }
-  ]
+  socket.emit('pull:message', messages)
 
-  socket.emit('wall:update', posts)
-  let c = 3
-  const intervalId = setInterval(() => {
+  socket.on('push:message', incoming => {
 
-    posts.push({
-      title: `Post #${c}`,
-      content: 'Yeah'
-    })
+    const {user,message} = incoming
 
-    if (c === 6) {
-      clearInterval(intervalId)
-    }
+    messages.unshift(incoming)
 
-    socket.emit('wall:update', posts)
-
-    c++
-  }, 3000)
-
-  socket.on('wall:publish', post => {});
+    io.sockets.emit('pull:message', messages)
+  })
 
   socket.on('disconnect', () => {})
 })
